@@ -101,18 +101,11 @@ stage('Test Docker Image') {
             
             // יצירת קונטיינר בלי לציין פקודה, כך שיפעיל את האנטריפוינט
             sh "docker create --name thumbnailer ${DOCKER_IMAGE}:${DOCKER_TAG}"
-            
-            // העתקת התיקייה examples מהפרויקט לתוך הקונטיינר
             sh "docker cp \${WORKSPACE}/examples/. thumbnailer:/pics/"
-            
-            // הפעלת הקונטיינר - זה יריץ את האנטריפוינט אוטומטית
             sh "docker start -a thumbnailer"
-            
-            // העתקת התוצאות בחזרה לתיקיית הפרויקט (אופציונלי)
-            sh "docker cp thumbnailer:/pics/. \${WORKSPACE}/examples/"
-            
-            // הצגת התוצאות העדכניות
-            sh "ls -la \${WORKSPACE}/examples/"
+            sh "docker exec thumbnailer ls -la /pics/tn-*.png"
+
+
         }
     }
 }
