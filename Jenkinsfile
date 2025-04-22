@@ -76,22 +76,48 @@ pipeline {
             }
         }
         
+        // stage('Test Docker Image') {
+        //     steps {
+        //         script {
+        //             sh 'docker rm -f thumbnailer || true'
+                    
+        //             // יצירת קונטיינר ריק
+        //             sh "docker create --name thumbnailer ${DOCKER_IMAGE}:${DOCKER_TAG} ls /pics"
+                    
+        //             // העתקת התיקייה examples מהפרויקט לתוך הקונטיינר
+        //             sh "docker cp \${WORKSPACE}/examples/. thumbnailer:/pics/"
+                    
+        //             // הפעלת הקונטיינר עם הפקודה ls
+        //             sh "docker start -a thumbnailer"
+        //         }
+        //     }
+        // }
+    
         stage('Test Docker Image') {
-            steps {
-                script {
-                    sh 'docker rm -f thumbnailer || true'
-                    
-                    // יצירת קונטיינר ריק
-                    sh "docker create --name thumbnailer ${DOCKER_IMAGE}:${DOCKER_TAG} ls /pics"
-                    
-                    // העתקת התיקייה examples מהפרויקט לתוך הקונטיינר
-                    sh "docker cp \${WORKSPACE}/examples/. thumbnailer:/pics/"
-                    
-                    // הפעלת הקונטיינר עם הפקודה ls
-                    sh "docker start -a thumbnailer"
-                }
+        steps {
+            script {
+                sh 'docker rm -f thumbnailer || true'
+                
+                // יצירת קונטיינר עם פקודה לביצוע
+                sh "docker create --name thumbnailer ${DOCKER_IMAGE}:${DOCKER_TAG} ls /pics"
+                
+                // העתקת התיקייה examples מהפרויקט לתוך הקונטיינר
+                sh "docker cp \${WORKSPACE}/examples/. thumbnailer:/pics/"
+                
+                // הפעלת התמונות בקונטיינר באמצעות הסקריפט (במקום רק ls)
+                sh "docker start thumbnailer"
+                sh "docker exec thumbnailer /app/thumbnail.sh /pics"
+                
+                // העתקת הקבצים המעודכנים בחזרה לתיקיית העבודה
+                sh "docker cp thumbnailer:/pics/. \${WORKSPACE}/examples/"
+                
+                // הצגת התוכן המעודכן
+                sh "ls -la \${WORKSPACE}/examples/"
             }
         }
+    }
+
+    
     }
     
     // post {
