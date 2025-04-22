@@ -30,6 +30,7 @@ pipeline {
 stage('Test Docker Image') {
     steps {
         script {
+            sh 'docker ps'
             sh 'docker rm -f thumbnailer || true'
             sh "docker create --name thumbnailer ${DOCKER_IMAGE}:${DOCKER_TAG}"
             sh "docker cp \${WORKSPACE}/examples/. thumbnailer:/pics/"
