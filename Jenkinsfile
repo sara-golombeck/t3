@@ -106,8 +106,9 @@ pipeline {
                 
                 // הפעלת התמונות בקונטיינר באמצעות הסקריפט (במקום רק ls)
                 sh "docker start thumbnailer"
-                sh "docker exec thumbnailer /app/thumbnail.sh /pics"
-                
+                // sh "docker exec thumbnailer /app/thumbnail.sh /pics"
+                sh "docker exec thumbnailer find /pics -type f -not -name 'tn-*' -exec /app/thumbnail.sh {} \\;"
+
                 // העתקת הקבצים המעודכנים בחזרה לתיקיית העבודה
                 sh "docker cp thumbnailer:/pics/. \${WORKSPACE}/examples/"
                 
