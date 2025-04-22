@@ -82,13 +82,13 @@ pipeline {
                     sh 'docker rm -f thumbnailer || true'
                     
                     // יצירת קונטיינר ריק
-                    sh "docker create --name thumbnailer ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                    sh "docker create --name thumbnailer ${DOCKER_IMAGE}:${DOCKER_TAG} ls /pics"
                     
                     // העתקת התיקייה examples מהפרויקט לתוך הקונטיינר
                     sh "docker cp \${WORKSPACE}/examples/. thumbnailer:/pics/"
                     
                     // הפעלת הקונטיינר עם הפקודה ls
-                    sh "docker start -a thumbnailer ls /pics"
+                    sh "docker start -a thumbnailer"
                 }
             }
         }
