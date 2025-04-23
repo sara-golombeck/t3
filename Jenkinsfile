@@ -63,41 +63,81 @@ pipeline {
         //         }
         //     }
         
+        // stage('Test Docker Image') {
+        //     steps {
+        //         script {
+        //             // הרצת הקונטיינר
+        //             // sh "docker run -d --name thumbnailer-extended -v \${WORKSPACE}/examples:/pics thumbnailer:1.0-SNAPSHOT"
+        //             sh "docker run -d --name thumbnailer-extended -v \${WORKSPACE}/examples:/pics thumbnailer:1.0-SNAPSHOT tail -f /dev/null"
+        //             // בדיקת תוכן תיקיית /pics בקונטיינר
+        //             sh "docker exec thumbnailer-extended ls -la /pics || echo 'Cannot list /pics directory'"
+                    
+        //             // בדיקה האם קיימת תיקיית thumbnails כלשהי
+        //             sh "docker exec thumbnailer-extended find / -name 'thumbnails' -type d || echo 'No thumbnails directory found'"
+        //             sh "docker logs thumbnailer-extended"
+
+        //             // בדיקה היכן נשמרות התמונות המעובדות (בהנחה שיש קבצי תמונה חדשים)
+        //             sh "docker exec thumbnailer-extended find / -name '*.jpg' -o -name '*.png' -o -name '*.jpeg' -mmin -5 || echo 'No recently modified images found'"
+                    
+        //             // יצירת תיקיית thumbnails במארח
+        //             sh "mkdir -p \${WORKSPACE}/thumbnails"
+                    
+        //             // ניסיון העתקה
+        //             sh "docker cp thumbnailer-extended:/pics/. \${WORKSPACE}/thumbnails/ || echo 'Failed to copy files from /pics/'"
+                    
+        //             // הצגת תוכן התיקייה במארח לאחר ההעתקה
+        //             sh "ls -la \${WORKSPACE}/thumbnails"
+                    
+        //             // ניקוי
+        //             sh "docker rm -f thumbnailer-extended || true"
+        //         }
+        //     }
+        //     post {
+        //         success {
+        //             // שמירת התמונות כ-artifacts של ג'נקינס
+        //             archiveArtifacts artifacts: 'thumbnails/**', allowEmptyArchive: true
+        //         }
+        //     }
+        // }
+
+
+
         stage('Test Docker Image') {
-            steps {
-                script {
-                    // הרצת הקונטיינר
-                    // sh "docker run -d --name thumbnailer-extended -v \${WORKSPACE}/examples:/pics thumbnailer:1.0-SNAPSHOT"
-                    sh "docker run -d --name thumbnailer-extended -v \${WORKSPACE}/examples:/pics thumbnailer:1.0-SNAPSHOT tail -f /dev/null"
-                    // בדיקת תוכן תיקיית /pics בקונטיינר
-                    sh "docker exec thumbnailer-extended ls -la /pics || echo 'Cannot list /pics directory'"
-                    
-                    // בדיקה האם קיימת תיקיית thumbnails כלשהי
-                    sh "docker exec thumbnailer-extended find / -name 'thumbnails' -type d || echo 'No thumbnails directory found'"
-                    sh "docker logs thumbnailer-extended"
-                    // בדיקה היכן נשמרות התמונות המעובדות (בהנחה שיש קבצי תמונה חדשים)
-                    sh "docker exec thumbnailer-extended find / -name '*.jpg' -o -name '*.png' -o -name '*.jpeg' -mmin -5 || echo 'No recently modified images found'"
-                    
-                    // יצירת תיקיית thumbnails במארח
-                    sh "mkdir -p \${WORKSPACE}/thumbnails"
-                    
-                    // ניסיון העתקה
-                    sh "docker cp thumbnailer-extended:/pics/. \${WORKSPACE}/thumbnails/ || echo 'Failed to copy files from /pics/'"
-                    
-                    // הצגת תוכן התיקייה במארח לאחר ההעתקה
-                    sh "ls -la \${WORKSPACE}/thumbnails"
-                    
-                    // ניקוי
-                    sh "docker rm -f thumbnailer-extended || true"
-                }
-            }
-            post {
-                success {
-                    // שמירת התמונות כ-artifacts של ג'נקינס
-                    archiveArtifacts artifacts: 'thumbnails/**', allowEmptyArchive: true
-                }
-            }
+    steps {
+        script {
+            // נקה קונטיינרים קודמים
+            sh "docker rm -f thumbnailer-extended || true"
+            
+            // הרץ את הקונטיינר ושמור את הפלט
+            sh "docker run --name thumbnailer-extended -v \${WORKSPACE}/examples:/pics thumbnailer:1.0-SNAPSHOT"
+            
+            // שמור את הלוגים
+            sh "docker logs thumbnailer-extended > container_logs.txt || true"
+            sh "cat container_logs.txt"
+            
+            // יצירת תיקיית thumbnails במארח
+            sh "mkdir -p \${WORKSPACE}/thumbnails"
+            
+            // ניסיון העתקה
+            sh "docker cp thumbnailer-extended:/pics/. \${WORKSPACE}/thumbnails/ || echo 'Failed to copy files from /pics/'"
+            
+            // בדוק מה יש בקונטיינר (אפילו אם הוא כבר לא רץ)
+            sh "docker export thumbnailer-extended | tar -tv | grep -E '\\.jpg|\\.png|\\.jpeg|thumbnails' || echo 'No image files found in container'"
+            
+            // הצגת תוכן התיקייה במארח לאחר ההעתקה
+            sh "ls -la \${WORKSPACE}/thumbnails"
+            
+            // ניקוי
+            sh "docker rm -f thumbnailer-extended || true"
         }
+    }
+    post {
+        success {
+            archiveArtifacts artifacts: 'thumbnails/**', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'container_logs.txt', allowEmptyArchive: true
+        }
+    }
+}
     }
     
     // post {
