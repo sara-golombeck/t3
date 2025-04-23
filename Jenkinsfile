@@ -111,4 +111,4 @@ pipeline {
     //         sh 'docker rm -f thumbnailer || true'
     //     }
     // }
-}
+
