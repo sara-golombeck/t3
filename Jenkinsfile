@@ -67,8 +67,8 @@ pipeline {
             steps {
                 script {
                     // הרצת הקונטיינר
-                    sh "docker run -d --name thumbnailer-extended -v \${WORKSPACE}/examples:/pics thumbnailer:1.0-SNAPSHOT"
-                    
+                    // sh "docker run -d --name thumbnailer-extended -v \${WORKSPACE}/examples:/pics thumbnailer:1.0-SNAPSHOT"
+                    sh "docker run -it --name thumbnailer-extended -v \${WORKSPACE}/examples:/pics thumbnailer:1.0-SNAPSHOT /bin/bash"
                     // בדיקת תוכן תיקיית /pics בקונטיינר
                     sh "docker exec thumbnailer-extended ls -la /pics || echo 'Cannot list /pics directory'"
                     
