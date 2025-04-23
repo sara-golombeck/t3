@@ -74,7 +74,7 @@ pipeline {
                     
                     // בדיקה האם קיימת תיקיית thumbnails כלשהי
                     sh "docker exec thumbnailer-extended find / -name 'thumbnails' -type d || echo 'No thumbnails directory found'"
-                    
+                    sh "docker logs thumbnailer-extended"
                     // בדיקה היכן נשמרות התמונות המעובדות (בהנחה שיש קבצי תמונה חדשים)
                     sh "docker exec thumbnailer-extended find / -name '*.jpg' -o -name '*.png' -o -name '*.jpeg' -mmin -5 || echo 'No recently modified images found'"
                     
